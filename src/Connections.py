@@ -1,42 +1,47 @@
 from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 
-class Connection(LineReceiver):
+class QuadComms(LineReceiver):
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, clients):
+        self.clients = clients
+        self.type = "NONE"
+        self.state = "GET_DATA_TYPE"
 
     def connectionMade(self):
-        self.sendLine("Hello client!")
-        print(self.name + ' Client connected')
+        print('Client connected. Asking for data type')
+        self.sendLine("What data do you want?")
+        
 
     def connectionLost(self, reason):
-        print(self.name + ' Client disconnected')
+        print(self.type + ' Client disconnected')
+        if self.clients.has_key(self.type):
+            del self.clients[self.type]
 
     def lineReceived(self, line):
-        print self.name + ':' + line
+        if self.state == "GET_DATA_TYPE":
+            self.handle_GetDataType(line)
+        else:
+            self.handle_Data(line)
+            
+    def handle_GetDataType(self,type):
         
-    def handle_SendData(self,data):
-        self.sendLine(data)
-'''
-    def handle_GETNAME(self, name):
-        if self.users.has_key(name):
-            self.sendLine("Name taken, please choose another.")
+        if self.clients.has_key(type):
+            self.sendLine("ERROR: " + type + " ALREADY TAKEN!")
             return
-        self.sendLine("Welcome, %s!" % (name,))
-        self.name = name
-        self.users[name] = self
-        self.state = "CHAT"
-
-    def handle_CHAT(self, message):
-        message = "<%s> %s" % (self.name, message)
-        for name, protocol in self.users.iteritems():
-            if protocol != self:
-                protocol.sendLine(message)
-'''
+        
+        print 'Accepted client for ' + type 
+        self.type = type
+        self.clients[type] = self
+        self.state = "DATA"
+        
+    def handle_Data(self,line):
+        print '<' + self.type + '>'+ line
+         
 
 class ConnectionFactory(Factory):
-    def __init__(self,name):
-        self.name = name
+    def __init__(self):
+        self.clients = {}
+        
     def buildProtocol(self, addr):
-        return Connection(self.name)
+        return QuadComms(self.clients)

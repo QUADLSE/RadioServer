@@ -3,12 +3,15 @@ from comms import Msg
 import Connections
 from RadioReceiver import RadioConnection
 from twisted.internet.serialport import SerialPort
+from twisted.internet import reactor
+from twisted.application import service, internet
+
 #==========================================================================
 # Main
 #==========================================================================
 if __name__ == "__main__":
     
-    from twisted.internet import reactor
+    from twisted.internet import protocol
     
     #ser = serial.Serial() 
     
@@ -56,8 +59,6 @@ if __name__ == "__main__":
             print 
             
             print 'Opening Serial port...',
-
-            SerialPort(RadioConnection(), Port, reactor, Baudrate)
             
             print "[OK]"
             print '---------------------------------------------'
@@ -72,14 +73,16 @@ if __name__ == "__main__":
             print "port:" + str(ProxyPort)
             print "Header:" + ProxyHeader
             print "Protocol:" + ProxyProtocol
+                  
+            f = Connections.ConnectionFactory()
+            reactor.listenTCP(ProxyPort, f)
             
-            reactor.listenTCP(ProxyPort, Connections.ConnectionFactory(ProxyHeader))
-       
             print
-            print ProxyHeader + ' Server running'        
+            print ProxyHeader + ' Server running'
             print '---------------------------------------------'
-
-           
+            
+    SerialPort(RadioConnection(f.clients), Port, reactor, Baudrate)
+     
     #=========================================================================
     # Main server thread
     #=========================================================================

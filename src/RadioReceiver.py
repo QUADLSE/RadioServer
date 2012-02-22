@@ -5,13 +5,17 @@ import struct
 class RadioConnection(LineReceiver):
     MsgBuff = Msg()
     
-    def __init__(self):
-        print 'created'
+    def __init__(self, clients):
         self.setRawMode()
+        self.clients = clients
     
     def rawDataReceived(self,data):
         for c in data:
             if (self.MsgBuff.NewByte(c)):
                 #self.MsgBuff.Show()
-                if (self.MsgBuff.DataType==self.MsgBuff.TYPE_TELEMETRY):
-                    print struct.unpack('ffffff', self.MsgBuff.Payload)
+                
+                for clientType, protocol in self.clients.iteritems():
+                    if protocol != self:
+                        if self.MsgBuff.HeaderNames[self.MsgBuff.DataType] == clientType:
+                        #protocol.sendLine(struct.unpack('ffffff', self.MsgBuff.Payload))
+                            protocol.sendLine(self.MsgBuff.Payload)
