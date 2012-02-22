@@ -1,6 +1,4 @@
-
 import sys
-import serial
 
 class Msg:
     TYPE_SYSTEM, TYPE_CONTROL, TYPE_DEBUG, TYPE_TELEMETRY, TYPE_NULL = range(5)
