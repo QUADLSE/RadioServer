@@ -82,7 +82,7 @@ if __name__ == "__main__":
             
     r = RadioConnection(f.clients)
     SerialPort(r, Port, reactor, Baudrate)
-    #yuhu!
+    
     #=========================================================================
     # Main server thread
     #=========================================================================
