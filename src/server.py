@@ -20,7 +20,6 @@ if __name__ == "__main__":
     #=========================================================================
     
     config = ConfigParser.RawConfigParser()
-    
          
     print '---------------------------------------------'
     print 'Reading configuration file...',    
@@ -74,15 +73,16 @@ if __name__ == "__main__":
             print "Header:" + ProxyHeader
             print "Protocol:" + ProxyProtocol
                   
-            f = Connections.ConnectionFactory()
+            f = Connections.ConnectionFactory()       
             reactor.listenTCP(ProxyPort, f)
-            
+    
             print
             print ProxyHeader + ' Server running'
             print '---------------------------------------------'
             
-    SerialPort(RadioConnection(f.clients), Port, reactor, Baudrate)
-     
+    r = RadioConnection(f.clients)
+    SerialPort(r, Port, reactor, Baudrate)
+    
     #=========================================================================
     # Main server thread
     #=========================================================================

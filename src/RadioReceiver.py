@@ -17,5 +17,8 @@ class RadioConnection(LineReceiver):
                 for clientType, protocol in self.clients.iteritems():
                     if protocol != self:
                         if self.MsgBuff.HeaderNames[self.MsgBuff.DataType] == clientType:
-                        #protocol.sendLine(struct.unpack('ffffff', self.MsgBuff.Payload))
+                            #data = struct.unpack('ffffff', self.MsgBuff.Payload)
+                            #print(data)
+                            #data2 = struct.pack('ffffff', data[0],data[1],data[2],data[3],data[4],data[5])                     
                             protocol.sendLine(self.MsgBuff.Payload)
+                            #print(data2)
