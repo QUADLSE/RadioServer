@@ -12,7 +12,6 @@ from twisted.application import service, internet
 if __name__ == "__main__":
     
     from twisted.internet import protocol
-    
     #ser = serial.Serial() 
     
     #=========================================================================
@@ -81,7 +80,7 @@ if __name__ == "__main__":
             print '---------------------------------------------'
             
     r = RadioConnection(f.clients)
-    SerialPort(r, Port, reactor, Baudrate)
+    #SerialPort(r, Port, reactor, Baudrate)
     
     #=========================================================================
     # Main server thread
