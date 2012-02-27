@@ -24,8 +24,8 @@ class RadioReceiver(LineReceiver):
                 #self.MsgBuff.Show()                 
                 for clientType, protocol in self.MetaFactory.clients.iteritems():
                     if self.MsgBuff.HeaderNames[self.MsgBuff.DataType] == clientType:
-                        protocol.sendLine(self.MsgBuff.Payload)
-                
+                        #protocol.sendLine(self.MsgBuff.Payload)
+                        protocol.transport.write(self.MsgBuff.Payload)             
 
 class QuadComms(LineReceiver):
 
@@ -39,7 +39,6 @@ class QuadComms(LineReceiver):
         print 'Accepted client for ' + self.dataType 
         self.type = self.dataType
         self.clients[self.dataType] = self
-        print self.clients
         
     def connectionLost(self, reason):
         print(self.dataType + ' Client disconnected')
@@ -56,8 +55,17 @@ class QuadComms(LineReceiver):
             return
         
     def handle_Data(self,line):
+        from comms import Msg
+        
         print '<' + self.dataType + '>'+ line
-        self.radio.sendLine("A!")
+        
+        MsgBuff = Msg()
+        MsgBuff.Fill(0xBB, 0xAA, Msg.NamesToCode[self.dataType], line)
+        
+        MsgBuff.Send(self.radio.transport.write)        
+        #self.radio.sendLine('HOLA!')
+        #self.radio.transport.write('ABC')
+        #self.radio.sendLine("A!")
         '''
         for c in self.clients:
             if self.clients[c]!=self:

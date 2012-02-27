@@ -4,7 +4,7 @@ class Msg:
     TYPE_SYSTEM, TYPE_CONTROL, TYPE_DEBUG, TYPE_TELEMETRY, TYPE_NULL = range(5)
     
     HeaderNames = ['SYSTEM','CONTROL','DEBUG','TELEMETRY']
-    #HeaderNames = {'SYSTEM':TYPE_SYSTEM,'CONTROL':TYPE_CONTROL,'DEBUG':TYPE_DEBUG,'TELEMETRY':TYPE_TELEMETRY}
+    NamesToCode = {'SYSTEM':TYPE_SYSTEM,'CONTROL':TYPE_CONTROL,'DEBUG':TYPE_DEBUG,'TELEMETRY':TYPE_TELEMETRY}
     
     SourceAddress = 0;
     DestAddress = 0
@@ -93,10 +93,14 @@ class Msg:
         self.DataLength = len(Data)
         self.TimeStamp = 0x55
         self.Checksum = self.CalculateChecksum()
-        
-    def Send(self, ser):
+    '''    
+    def Pack(self):
+        return pack('bbbbbsb',bytes(self.SourceAddress),bytes(self.DestAddress),bytes(self.TimeStamp),bytes(self.DataType),bytes(self.DataLength),(self.Payload),bytes(self.Checksum))
+    '''
+            
+    def Send(self, method):
         #TODO: Implement! 
-        pass
+        from struct import pack
         """
         print "-----------------------------------------------"
         print "Source:" + hex((self.SourceAddress))
@@ -108,13 +112,13 @@ class Msg:
         print "Checksum:" + hex((self.Checksum)) 
         print "-----------------------------------------------"
         """
-        '''
-        ser.write(bytes(self.SourceAddress))
-        ser.write(bytes(self.DestAddress))
-        ser.write(bytes(self.TimeStamp))
-        ser.write(bytes(self.DataType))
-        ser.write(bytes(self.DataLength))
-        ser.write(bytes(self.Payload))
-        ser.write(bytes(self.Checksum))
-        '''
+        method(pack('B',0xEA))
+        method(pack('B',self.SourceAddress))
+        method(pack('B',self.DestAddress))
+        method(pack('B',self.TimeStamp))
+        method(pack('B',self.DataType))
+        method(pack('B',self.DataLength))
+        method((self.Payload))
+        method(pack('B',self.Checksum))
+        
         
