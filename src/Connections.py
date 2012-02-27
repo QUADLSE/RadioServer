@@ -10,6 +10,7 @@ class RadioReceiver(LineReceiver):
     def __init__(self, factory):
         self.MetaFactory = factory
         self.setRawMode()
+        self.MetaFactory.radio = self
         
     def connectionMade(self):
         print 'SerialPort connected' 
@@ -20,24 +21,19 @@ class RadioReceiver(LineReceiver):
     def rawDataReceived(self,data):
         for c in data:
             if (self.MsgBuff.NewByte(c)):
-                #self.MsgBuff.Show()                
-                 
+                #self.MsgBuff.Show()                 
                 for clientType, protocol in self.MetaFactory.clients.iteritems():
-                    
-                    #print clientType
-                    #print protocol                
-                
-                    #if protocol != self:
                     if self.MsgBuff.HeaderNames[self.MsgBuff.DataType] == clientType:
                         protocol.sendLine(self.MsgBuff.Payload)
                 
 
 class QuadComms(LineReceiver):
 
-    def __init__(self, clients, dataType):
+    def __init__(self, factory, dataType):
         #self.factory = factory
-        self.clients = clients
+        self.clients = factory.clients
         self.dataType = dataType
+        self.radio = factory.radio
         
     def connectionMade(self):
         print 'Accepted client for ' + self.dataType 
@@ -61,6 +57,7 @@ class QuadComms(LineReceiver):
         
     def handle_Data(self,line):
         print '<' + self.dataType + '>'+ line
+        self.radio.sendLine("A!")
         '''
         for c in self.clients:
             if self.clients[c]!=self:
@@ -78,7 +75,7 @@ class TelemetryFactory(ServerFactory):
                 
     def buildProtocol(self, addr):
         print addr
-        r = QuadComms(self.factory.clients,  'TELEMETRY')
+        r = QuadComms(self.factory,  'TELEMETRY')
         return r
 
 class DebugFactory(ServerFactory):
@@ -91,14 +88,14 @@ class DebugFactory(ServerFactory):
                
     def buildProtocol(self, addr):
         print addr
-        r = QuadComms(self.factory.clients, 'DEBUG')
+        r = QuadComms(self.factory, 'DEBUG')
         return r
     
 class MetaFactory():
-    servers = {}
     factories = {}  
     clients = {}
-    
+    radio = None
+        
     def __init__(self):
         self.factories['TELEMETRY'] = TelemetryFactory(self)
         self.factories['DEBUG'] = DebugFactory(self)
@@ -109,6 +106,3 @@ class MetaFactory():
             return self.factories[dataType]
         else:
             return None
-    
-    def addFactory(self,dataType, factory):
-        self.factories['TELEMETRY'] = factory

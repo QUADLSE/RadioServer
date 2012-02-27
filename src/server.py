@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
             from twisted.internet import reactor          
             SerialPort(Connections.RadioReceiver(M), Port, reactor, baudrate=Baudrate)
-            
+
             print '---------------------------------------------'
                 
         elif section.find("Proxy")!=-1:
