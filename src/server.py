@@ -1,18 +1,16 @@
 import ConfigParser
-from comms import Msg
 import Connections
-from RadioReceiver import RadioConnection
 from twisted.internet.serialport import SerialPort
-from twisted.internet import reactor
-from twisted.application import service, internet
 
 #==========================================================================
 # Main
 #==========================================================================
 if __name__ == "__main__":
     
-    from twisted.internet import protocol
+    #HeadersPorts = {'SYSTEM':TYPE_SYSTEM,'CONTROL':TYPE_CONTROL,'DEBUG':TYPE_DEBUG,'TELEMETRY':TYPE_TELEMETRY}       
     #ser = serial.Serial() 
+    
+    M=Connections.MetaFactory()
     
     #=========================================================================
     # Config file reading
@@ -57,8 +55,10 @@ if __name__ == "__main__":
             print 
             
             print 'Opening Serial port...',
+
+            from twisted.internet import reactor          
+            SerialPort(Connections.RadioReceiver(M), Port, reactor, baudrate=Baudrate)
             
-            print "[OK]"
             print '---------------------------------------------'
                 
         elif section.find("Proxy")!=-1:
@@ -71,19 +71,23 @@ if __name__ == "__main__":
             print "port:" + str(ProxyPort)
             print "Header:" + ProxyHeader
             print "Protocol:" + ProxyProtocol
-                  
-            f = Connections.ConnectionFactory()       
-            reactor.listenTCP(ProxyPort, f)
-    
+          
+
+            from twisted.internet import reactor            
+            f = M.getFactory(ProxyHeader)
+            p = reactor.listenTCP(ProxyPort, f)
+            #p = reactor.connectTCP( '',ProxyPort, factory=f)
+            
             print
             print ProxyHeader + ' Server running'
             print '---------------------------------------------'
             
-    r = RadioConnection(f.clients)
+    #r = RadioConnection(f.clients)
     #SerialPort(r, Port, reactor, Baudrate)
     
     #=========================================================================
     # Main server thread
     #=========================================================================
+
     reactor.run()
     
