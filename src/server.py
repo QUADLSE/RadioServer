@@ -6,10 +6,8 @@ from twisted.internet.serialport import SerialPort
 # Main
 #==========================================================================
 if __name__ == "__main__":
-    
-    #HeadersPorts = {'SYSTEM':TYPE_SYSTEM,'CONTROL':TYPE_CONTROL,'DEBUG':TYPE_DEBUG,'TELEMETRY':TYPE_TELEMETRY}       
-    #ser = serial.Serial() 
-    
+     
+    LocalAdress = None    
     M=Connections.MetaFactory()
     
     #=========================================================================
@@ -34,6 +32,7 @@ if __name__ == "__main__":
         
     print '---------------------------------------------'
     print 'Parsing sections...\n'
+    
         
     for section in config.sections():
         
@@ -56,7 +55,8 @@ if __name__ == "__main__":
             
             print 'Opening Serial port...',
 
-            from twisted.internet import reactor          
+            
+            from twisted.internet import reactor      
             SerialPort(Connections.RadioReceiver(M), Port, reactor, baudrate=Baudrate)
 
             print '---------------------------------------------'
@@ -75,13 +75,16 @@ if __name__ == "__main__":
 
             from twisted.internet import reactor            
             f = M.getFactory(ProxyHeader)
-            p = reactor.listenTCP(ProxyPort, f)
+            factory = f(M)
+            p = reactor.listenTCP(ProxyPort, factory)
             #p = reactor.connectTCP( '',ProxyPort, factory=f)
             
             print
             print ProxyHeader + ' Server running'
             print '---------------------------------------------'
             
+        elif section.find("RadioStation")!=-1:
+            LocalAdress = config.get(section, 'LocalAdress')
     #r = RadioConnection(f.clients)
     #SerialPort(r, Port, reactor, Baudrate)
     

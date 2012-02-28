@@ -29,8 +29,9 @@ class RadioReceiver(LineReceiver):
 
 class QuadComms(LineReceiver):
 
-    def __init__(self, factory, dataType):
+    def __init__(self, factory, dataType, address):
         #self.factory = factory
+        self.LocalAdress = address
         self.clients = factory.clients
         self.dataType = dataType
         self.radio = factory.radio
@@ -49,7 +50,6 @@ class QuadComms(LineReceiver):
         self.handle_Data(line)
             
     def handle_GetDataType(self,DataType):
-        
         if self.clients.has_key(DataType):
             self.sendLine("ERROR: " + self.dataType + " ALREADY TAKEN!")
             return
@@ -58,9 +58,8 @@ class QuadComms(LineReceiver):
         from comms import Msg
         
         print '<' + self.dataType + '>'+ line
-        
         MsgBuff = Msg()
-        MsgBuff.Fill(0xBB, 0xAA, Msg.NamesToCode[self.dataType], line)
+        MsgBuff.Fill(0xBB, self.LocalAdress, Msg.NamesToCode[self.dataType], line)
         
         MsgBuff.Send(self.radio.transport.write)        
         #self.radio.sendLine('HOLA!')
@@ -78,12 +77,13 @@ class TelemetryFactory(ServerFactory):
     
     def __init__(self,factory):
         #self.clients = clients
+        self.LocalAdress = 0xAA
         self.factory = factory
         pass
                 
     def buildProtocol(self, addr):
         print addr
-        r = QuadComms(self.factory,  'TELEMETRY')
+        r = QuadComms(self.factory,  'TELEMETRY', self.LocalAdress)
         return r
 
 class DebugFactory(ServerFactory):
@@ -91,13 +91,26 @@ class DebugFactory(ServerFactory):
     
     def __init__(self,factory):
         #self.clients = clients
-        self.factory = factory
-        pass
+        self.LocalAdress = 0xAA
+        self.factory = factory        
                
     def buildProtocol(self, addr):
         print addr
-        r = QuadComms(self.factory, 'DEBUG')
+        r = QuadComms(self.factory, 'DEBUG', self.LocalAdress)
         return r
+
+class ControlFactory(ServerFactory):
+    protocol = QuadComms
+    
+    def __init__(self,factory):
+        #self.clients = clients
+        self.LocalAdress = 0xAA
+        self.factory = factory        
+               
+    def buildProtocol(self, addr):
+        print addr
+        r = QuadComms(self.factory, 'CONTROL', self.LocalAdress)
+        return r    
     
 class MetaFactory():
     factories = {}  
@@ -105,8 +118,11 @@ class MetaFactory():
     radio = None
         
     def __init__(self):
-        self.factories['TELEMETRY'] = TelemetryFactory(self)
-        self.factories['DEBUG'] = DebugFactory(self)
+        #self.factories['TELEMETRY'] = TelemetryFactory(self, self.LocalAdress)
+        #self.factories['DEBUG'] = DebugFactory(self, self.LocalAdress)
+        self.factories['TELEMETRY'] = TelemetryFactory        
+        self.factories['DEBUG'] = DebugFactory
+        self.factories['CONTROL'] = ControlFactory
         self.clients =   {}
         
     def getFactory(self,dataType):
