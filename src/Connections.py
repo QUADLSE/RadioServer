@@ -57,11 +57,11 @@ class QuadComms(LineReceiver):
     def handle_Data(self,line):
         from comms import Msg
         
-        print '<' + self.dataType + '>'+ line
+        #print '<' + self.dataType + '>'+ line
         MsgBuff = Msg()
         MsgBuff.Fill(0xBB, self.LocalAdress, Msg.NamesToCode[self.dataType], line)
         
-        MsgBuff.Send(self.radio.transport.write)        
+        MsgBuff.Send(self.radio.transport.write)
         #self.radio.sendLine('HOLA!')
         #self.radio.transport.write('ABC')
         #self.radio.sendLine("A!")
@@ -111,6 +111,19 @@ class ControlFactory(ServerFactory):
         print addr
         r = QuadComms(self.factory, 'CONTROL', self.LocalAdress)
         return r    
+        
+class SystemFactory(ServerFactory):
+    protocol = QuadComms
+    
+    def __init__(self,factory):
+        #self.clients = clients
+        self.LocalAdress = 0xAA
+        self.factory = factory        
+               
+    def buildProtocol(self, addr):
+        print addr
+        r = QuadComms(self.factory, 'SYSTEM', self.LocalAdress)
+        return r    
     
 class MetaFactory():
     factories = {}  
@@ -123,6 +136,7 @@ class MetaFactory():
         self.factories['TELEMETRY'] = TelemetryFactory        
         self.factories['DEBUG'] = DebugFactory
         self.factories['CONTROL'] = ControlFactory
+        self.factories['SYSTEM'] = SystemFactory
         self.clients =   {}
         
     def getFactory(self,dataType):
